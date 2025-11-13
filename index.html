@@ -225,210 +225,39 @@
     </div>
 
     <script>
-        (function() {
-            'use strict';
-            
-            const vid1 = document.getElementById('vid1');
-            const vid2 = document.getElementById('vid2');
-            const vid3 = document.getElementById('vid3');
-            const videos = [vid1, vid2, vid3];
-            let currentVideoIndex = 0;
-            let playAttempts = 0;
-            const maxPlayAttempts = 10;
+        const vid1 = document.getElementById('vid1');
+        const vid2 = document.getElementById('vid2');
+        const vid3 = document.getElementById('vid3');
 
-            // Ensure all videos are properly configured for autoplay
-            videos.forEach(video => {
-                video.muted = true;
-                video.playsInline = true;
-                video.setAttribute('playsinline', '');
-                video.setAttribute('webkit-playsinline', '');
-            });
-
-            // Aggressive play function
-            function forcePlay(video) {
-                if (!video) return Promise.reject('No video');
-                
-                // Ensure video is ready
-                if (video.readyState === 0) {
-                    video.load();
-                }
-                
-                // Set all required properties
-                video.muted = true;
-                video.volume = 0;
-                
-                return video.play().then(() => {
-                    console.log('Video playing:', video.id);
-                    return true;
-                }).catch(error => {
-                    console.log('Play attempt failed for', video.id, error);
-                    return false;
-                });
+        // Simple play function
+        function playVideo(video) {
+            if (video && video.paused) {
+                video.play().catch(() => {});
             }
+        }
 
-            // Try to play current video with multiple strategies
-            function attemptPlayCurrent() {
-                const currentVideo = videos[currentVideoIndex];
-                if (!currentVideo || currentVideo.classList.contains('hidden')) {
-                    return Promise.resolve(false);
-                }
+        // Try vid1 first
+        vid1.addEventListener('canplay', () => playVideo(vid1));
+        vid1.addEventListener('loadeddata', () => playVideo(vid1));
+        playVideo(vid1);
 
-                playAttempts++;
-                
-                // Strategy 1: Direct play
-                return forcePlay(currentVideo).then(success => {
-                    if (success) return true;
-                    
-                    // Strategy 2: Wait a bit and try again
-                    return new Promise(resolve => {
-                        setTimeout(() => {
-                            forcePlay(currentVideo).then(resolve);
-                        }, 100);
-                    });
-                }).then(success => {
-                    if (success) return true;
-                    
-                    // Strategy 3: Load and play
-                    if (currentVideo.readyState < 2) {
-                        currentVideo.load();
-                        return new Promise(resolve => {
-                            currentVideo.addEventListener('canplay', () => {
-                                forcePlay(currentVideo).then(resolve);
-                            }, { once: true });
-                            setTimeout(() => resolve(false), 1000);
-                        });
-                    }
-                    return false;
-                });
-            }
+        // Fallback to vid2 if vid1 fails
+        vid1.addEventListener('error', () => {
+            vid1.classList.add('hidden');
+            vid2.classList.remove('hidden');
+            playVideo(vid2);
+        });
 
-            // Switch to next video
-            function switchToNext() {
-                if (currentVideoIndex < videos.length - 1) {
-                    videos[currentVideoIndex].classList.add('hidden');
-                    videos[currentVideoIndex].pause();
-                    currentVideoIndex++;
-                    videos[currentVideoIndex].classList.remove('hidden');
-                    playAttempts = 0;
-                    return attemptPlayCurrent();
-                }
-                return Promise.resolve(false);
-            }
+        // Fallback to vid3 if vid2 fails
+        vid2.addEventListener('error', () => {
+            vid2.classList.add('hidden');
+            vid3.classList.remove('hidden');
+            playVideo(vid3);
+        });
 
-            // Main play function with fallbacks
-            function startPlayback() {
-                attemptPlayCurrent().then(success => {
-                    if (!success && playAttempts < maxPlayAttempts) {
-                        // Try switching to next video
-                        return switchToNext();
-                    }
-                }).catch(() => {
-                    if (currentVideoIndex < videos.length - 1) {
-                        switchToNext();
-                    }
-                });
-            }
-
-            // Initialize on DOM ready
-            function init() {
-                // Load all videos
-                videos.forEach(video => video.load());
-                
-                // Try playing immediately
-                startPlayback();
-                
-                // Try again after a short delay (for browsers that need time to initialize)
-                setTimeout(startPlayback, 100);
-                setTimeout(startPlayback, 300);
-                setTimeout(startPlayback, 500);
-            }
-
-            // Wait for DOM
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', init);
-            } else {
-                init();
-            }
-
-            // Event listeners for video readiness
-            vid1.addEventListener('loadedmetadata', () => {
-                if (!vid1.classList.contains('hidden') && vid1.paused) {
-                    forcePlay(vid1);
-                }
-            });
-
-            vid1.addEventListener('canplay', () => {
-                if (!vid1.classList.contains('hidden') && vid1.paused) {
-                    forcePlay(vid1);
-                }
-            });
-
-            vid1.addEventListener('canplaythrough', () => {
-                if (!vid1.classList.contains('hidden') && vid1.paused) {
-                    forcePlay(vid1);
-                }
-            });
-
-            vid1.addEventListener('loadeddata', () => {
-                if (!vid1.classList.contains('hidden') && vid1.paused) {
-                    forcePlay(vid1);
-                }
-            });
-
-            // Error handling
-            vid1.addEventListener('error', () => {
-                console.log('vid1 error, switching to vid2');
-                switchToNext();
-            });
-
-            vid2.addEventListener('error', () => {
-                if (!vid2.classList.contains('hidden')) {
-                    console.log('vid2 error, switching to vid3');
-                    switchToNext();
-                }
-            });
-
-            // Fallback: try next video if current doesn't play
-            setTimeout(() => {
-                const current = videos[currentVideoIndex];
-                if (current && (current.paused || current.readyState < 2)) {
-                    if (currentVideoIndex < videos.length - 1) {
-                        switchToNext();
-                    }
-                }
-            }, 1500);
-
-            // Visibility change handler
-            document.addEventListener('visibilitychange', () => {
-                if (!document.hidden) {
-                    const current = videos[currentVideoIndex];
-                    if (current && !current.classList.contains('hidden') && current.paused) {
-                        forcePlay(current);
-                    }
-                }
-            });
-
-            // User interaction fallback (for strict autoplay policies)
-            const interactionEvents = ['click', 'touchstart', 'mousedown', 'keydown', 'scroll', 'wheel'];
-            const playOnInteraction = () => {
-                const current = videos[currentVideoIndex];
-                if (current && !current.classList.contains('hidden') && current.paused) {
-                    forcePlay(current);
-                }
-            };
-
-            interactionEvents.forEach(event => {
-                document.addEventListener(event, playOnInteraction, { once: true, passive: true });
-            });
-
-            // Window focus handler
-            window.addEventListener('focus', () => {
-                const current = videos[currentVideoIndex];
-                if (current && !current.classList.contains('hidden') && current.paused) {
-                    forcePlay(current);
-                }
-            });
-        })();
+        // Try playing on any user interaction (for browsers that block autoplay)
+        document.addEventListener('click', () => playVideo(vid1), { once: true });
+        document.addEventListener('touchstart', () => playVideo(vid1), { once: true });
     </script>
 </body>
 </html>
