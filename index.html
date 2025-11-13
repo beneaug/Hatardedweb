@@ -205,19 +205,19 @@
 </head>
 <body>
     <div class="video-container">
-        <video id="vid000" autoplay muted loop playsinline preload="auto" webkit-playsinline x5-playsinline disablePictureInPicture>
+        <video id="vid000" autoplay muted playsinline preload="auto" webkit-playsinline x5-playsinline disablePictureInPicture>
             <source src="vid000.mp4" type="video/mp4">
         </video>
-        <video id="vid001" class="hidden" autoplay muted loop playsinline preload="auto" webkit-playsinline x5-playsinline disablePictureInPicture>
+        <video id="vid001" class="hidden" muted playsinline preload="auto" webkit-playsinline x5-playsinline disablePictureInPicture>
             <source src="vid001.mp4" type="video/mp4">
         </video>
-        <video id="vid1" class="hidden" autoplay muted loop playsinline preload="auto" webkit-playsinline x5-playsinline disablePictureInPicture>
+        <video id="vid1" class="hidden" muted playsinline preload="auto" webkit-playsinline x5-playsinline disablePictureInPicture>
             <source src="vid1.mp4" type="video/mp4">
         </video>
-        <video id="vid2" class="hidden" autoplay muted loop playsinline preload="auto" webkit-playsinline x5-playsinline disablePictureInPicture>
+        <video id="vid2" class="hidden" muted playsinline preload="auto" webkit-playsinline x5-playsinline disablePictureInPicture>
             <source src="vid2.mp4" type="video/mp4">
         </video>
-        <video id="vid3" class="hidden" autoplay muted loop playsinline preload="auto" webkit-playsinline x5-playsinline disablePictureInPicture>
+        <video id="vid3" class="hidden" muted playsinline preload="auto" webkit-playsinline x5-playsinline disablePictureInPicture>
             <source src="vid3.mp4" type="video/mp4">
         </video>
     </div>
@@ -236,29 +236,29 @@
     </div>
 
     <script>
-        const vid000 = document.getElementById('vid000');
-        const vid001 = document.getElementById('vid001');
-        const vid1 = document.getElementById('vid1');
-        const vid2 = document.getElementById('vid2');
-        const vid3 = document.getElementById('vid3');
+        const videos = [
+            document.getElementById('vid000'),
+            document.getElementById('vid001'),
+            document.getElementById('vid1'),
+            document.getElementById('vid2'),
+            document.getElementById('vid3')
+        ];
+        
+        let currentIndex = 0;
 
-        vid000.play().catch(() => {
-            vid000.classList.add('hidden');
-            vid001.classList.remove('hidden');
-            vid001.play().catch(() => {
-                vid001.classList.add('hidden');
-                vid1.classList.remove('hidden');
-                vid1.play().catch(() => {
-                    vid1.classList.add('hidden');
-                    vid2.classList.remove('hidden');
-                    vid2.play().catch(() => {
-                        vid2.classList.add('hidden');
-                        vid3.classList.remove('hidden');
-                        vid3.play();
-                    });
-                });
-            });
+        function playNext() {
+            videos[currentIndex].classList.add('hidden');
+            videos[currentIndex].pause();
+            currentIndex = (currentIndex + 1) % videos.length;
+            videos[currentIndex].classList.remove('hidden');
+            videos[currentIndex].play();
+        }
+
+        videos.forEach((video, index) => {
+            video.addEventListener('ended', playNext);
         });
+
+        videos[0].play();
     </script>
 </body>
 </html>
