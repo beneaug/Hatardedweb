@@ -241,13 +241,12 @@
         const vid1 = document.getElementById('vid1');
         const vid2 = document.getElementById('vid2');
         const vid3 = document.getElementById('vid3');
-        const videos = [vid000, vid001, vid1, vid2, vid3];
-        let currentVideoIndex = 0;
 
         // Ensure videos are optimized for large displays
-        videos.forEach(video => {
+        [vid000, vid001, vid1, vid2, vid3].forEach(video => {
             video.muted = true;
             video.volume = 0;
+            // Prevent quality degradation on large displays
             video.setAttribute('playsinline', '');
         });
 
@@ -258,60 +257,43 @@
             }
         }
 
-        // Function to switch to next video
-        function switchToNext() {
-            if (currentVideoIndex < videos.length - 1) {
-                videos[currentVideoIndex].classList.add('hidden');
-                videos[currentVideoIndex].pause();
-                currentVideoIndex++;
-                videos[currentVideoIndex].classList.remove('hidden');
-                playVideo(videos[currentVideoIndex]);
-            }
-        }
-
-        // Try vid000 first (highest priority)
+        // Try vid000 first
         vid000.addEventListener('canplay', () => playVideo(vid000));
         vid000.addEventListener('loadeddata', () => playVideo(vid000));
         vid000.addEventListener('loadedmetadata', () => playVideo(vid000));
         playVideo(vid000);
 
-        // Fallback chain: vid000 → vid001 → vid1 → vid2 → vid3
+        // Fallback to vid001 if vid000 fails
         vid000.addEventListener('error', () => {
-            console.log('vid000 failed, trying vid001');
-            switchToNext();
+            vid000.classList.add('hidden');
+            vid001.classList.remove('hidden');
+            playVideo(vid001);
         });
 
+        // Fallback to vid1 if vid001 fails
         vid001.addEventListener('error', () => {
-            if (!vid001.classList.contains('hidden')) {
-                console.log('vid001 failed, trying vid1');
-                switchToNext();
-            }
+            vid001.classList.add('hidden');
+            vid1.classList.remove('hidden');
+            playVideo(vid1);
         });
 
+        // Fallback to vid2 if vid1 fails
         vid1.addEventListener('error', () => {
-            if (!vid1.classList.contains('hidden')) {
-                console.log('vid1 failed, trying vid2');
-                switchToNext();
-            }
+            vid1.classList.add('hidden');
+            vid2.classList.remove('hidden');
+            playVideo(vid2);
         });
 
+        // Fallback to vid3 if vid2 fails
         vid2.addEventListener('error', () => {
-            if (!vid2.classList.contains('hidden')) {
-                console.log('vid2 failed, trying vid3');
-                switchToNext();
-            }
+            vid2.classList.add('hidden');
+            vid3.classList.remove('hidden');
+            playVideo(vid3);
         });
 
         // Try playing on any user interaction (for browsers that block autoplay)
-        document.addEventListener('click', () => {
-            const current = videos[currentVideoIndex];
-            if (current) playVideo(current);
-        }, { once: true });
-        
-        document.addEventListener('touchstart', () => {
-            const current = videos[currentVideoIndex];
-            if (current) playVideo(current);
-        }, { once: true });
+        document.addEventListener('click', () => playVideo(vid000), { once: true });
+        document.addEventListener('touchstart', () => playVideo(vid000), { once: true });
     </script>
 </body>
 </html>
