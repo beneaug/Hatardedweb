@@ -242,58 +242,23 @@
         const vid2 = document.getElementById('vid2');
         const vid3 = document.getElementById('vid3');
 
-        // Ensure videos are optimized for large displays
-        [vid000, vid001, vid1, vid2, vid3].forEach(video => {
-            video.muted = true;
-            video.volume = 0;
-            // Prevent quality degradation on large displays
-            video.setAttribute('playsinline', '');
-        });
-
-        // Simple play function
-        function playVideo(video) {
-            if (video && video.paused) {
-                video.play().catch(() => {});
-            }
-        }
-
-        // Try vid000 first
-        vid000.addEventListener('canplay', () => playVideo(vid000));
-        vid000.addEventListener('loadeddata', () => playVideo(vid000));
-        vid000.addEventListener('loadedmetadata', () => playVideo(vid000));
-        playVideo(vid000);
-
-        // Fallback to vid001 if vid000 fails
-        vid000.addEventListener('error', () => {
+        vid000.play().catch(() => {
             vid000.classList.add('hidden');
             vid001.classList.remove('hidden');
-            playVideo(vid001);
+            vid001.play().catch(() => {
+                vid001.classList.add('hidden');
+                vid1.classList.remove('hidden');
+                vid1.play().catch(() => {
+                    vid1.classList.add('hidden');
+                    vid2.classList.remove('hidden');
+                    vid2.play().catch(() => {
+                        vid2.classList.add('hidden');
+                        vid3.classList.remove('hidden');
+                        vid3.play();
+                    });
+                });
+            });
         });
-
-        // Fallback to vid1 if vid001 fails
-        vid001.addEventListener('error', () => {
-            vid001.classList.add('hidden');
-            vid1.classList.remove('hidden');
-            playVideo(vid1);
-        });
-
-        // Fallback to vid2 if vid1 fails
-        vid1.addEventListener('error', () => {
-            vid1.classList.add('hidden');
-            vid2.classList.remove('hidden');
-            playVideo(vid2);
-        });
-
-        // Fallback to vid3 if vid2 fails
-        vid2.addEventListener('error', () => {
-            vid2.classList.add('hidden');
-            vid3.classList.remove('hidden');
-            playVideo(vid3);
-        });
-
-        // Try playing on any user interaction (for browsers that block autoplay)
-        document.addEventListener('click', () => playVideo(vid000), { once: true });
-        document.addEventListener('touchstart', () => playVideo(vid000), { once: true });
     </script>
 </body>
 </html>
