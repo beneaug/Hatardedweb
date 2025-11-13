@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
     <title>hatarded.com</title>
     <style>
         * {
@@ -16,7 +17,10 @@
         html {
             height: 100%;
             height: -webkit-fill-available;
-            background-color: #000;
+            background: #000;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
         }
 
         body {
@@ -28,41 +32,48 @@
             height: -webkit-fill-available;
             height: 100dvh;
             width: 100vw;
-            background-color: #000;
+            background: #000;
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
+            overscroll-behavior: none;
         }
 
         .video-container {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
+            width: 100vw;
             height: 100vh;
-            height: -webkit-fill-available;
-            height: 100dvh;
             z-index: -1;
             overflow: hidden;
             background-color: #000;
         }
 
+        @supports (height: 100dvh) {
+            .video-container {
+                height: 100dvh;
+            }
+        }
+
+        @supports (height: -webkit-fill-available) {
+            .video-container {
+                height: -webkit-fill-available;
+            }
+        }
+
         .video-container video {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             min-width: 100%;
             min-height: 100%;
-            width: auto;
-            height: auto;
             object-fit: cover;
             object-position: center;
+            background-color: #000;
         }
 
         .video-container video.hidden {
@@ -189,13 +200,13 @@
 </head>
 <body>
     <div class="video-container">
-        <video id="vid1" autoplay muted loop playsinline>
+        <video id="vid1" autoplay muted loop playsinline preload="auto" webkit-playsinline>
             <source src="vid1.mp4" type="video/mp4">
         </video>
-        <video id="vid2" class="hidden" autoplay muted loop playsinline>
+        <video id="vid2" class="hidden" autoplay muted loop playsinline preload="auto" webkit-playsinline>
             <source src="vid2.mp4" type="video/mp4">
         </video>
-        <video id="vid3" class="hidden" autoplay muted loop playsinline>
+        <video id="vid3" class="hidden" autoplay muted loop playsinline preload="auto" webkit-playsinline>
             <source src="vid3.mp4" type="video/mp4">
         </video>
     </div>
@@ -222,6 +233,9 @@
         // Priority: vid1 loads first, then vid2, then vid3
         // vid1 is already set to autoplay and is the primary video
 
+        // Force immediate play
+        vid1.play().catch(() => {});
+        
         // Preload vid2 and vid3 in the background
         vid2.load();
         vid3.load();
