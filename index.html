@@ -49,6 +49,8 @@
             z-index: -1;
             overflow: hidden;
             background-color: #000;
+            transform: translateZ(0);
+            will-change: contents;
         }
 
         @supports (height: 100dvh) {
@@ -74,6 +76,9 @@
             object-fit: cover;
             object-position: center;
             background-color: #000;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
         }
 
         .video-container video.hidden {
@@ -200,13 +205,13 @@
 </head>
 <body>
     <div class="video-container">
-        <video id="vid1" autoplay muted loop playsinline preload="auto" webkit-playsinline x5-playsinline>
+        <video id="vid1" autoplay muted loop playsinline preload="auto" webkit-playsinline x5-playsinline disablePictureInPicture>
             <source src="vid1.mp4" type="video/mp4">
         </video>
-        <video id="vid2" class="hidden" autoplay muted loop playsinline preload="auto" webkit-playsinline x5-playsinline>
+        <video id="vid2" class="hidden" autoplay muted loop playsinline preload="auto" webkit-playsinline x5-playsinline disablePictureInPicture>
             <source src="vid2.mp4" type="video/mp4">
         </video>
-        <video id="vid3" class="hidden" autoplay muted loop playsinline preload="auto" webkit-playsinline x5-playsinline>
+        <video id="vid3" class="hidden" autoplay muted loop playsinline preload="auto" webkit-playsinline x5-playsinline disablePictureInPicture>
             <source src="vid3.mp4" type="video/mp4">
         </video>
     </div>
@@ -229,6 +234,14 @@
         const vid2 = document.getElementById('vid2');
         const vid3 = document.getElementById('vid3');
 
+        // Ensure videos are optimized for large displays
+        [vid1, vid2, vid3].forEach(video => {
+            video.muted = true;
+            video.volume = 0;
+            // Prevent quality degradation on large displays
+            video.setAttribute('playsinline', '');
+        });
+
         // Simple play function
         function playVideo(video) {
             if (video && video.paused) {
@@ -239,6 +252,7 @@
         // Try vid1 first
         vid1.addEventListener('canplay', () => playVideo(vid1));
         vid1.addEventListener('loadeddata', () => playVideo(vid1));
+        vid1.addEventListener('loadedmetadata', () => playVideo(vid1));
         playVideo(vid1);
 
         // Fallback to vid2 if vid1 fails
